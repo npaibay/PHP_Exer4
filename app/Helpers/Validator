@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Helpers;
+
+class Validator
+{
+    public static function isRequired(string $value): bool
+    {
+        return trim($value) !== '';
+    }
+
+    public static function minLength(string $value, int $length): bool
+    {
+        return strlen($value) >= $length;
+    }
+
+    public static function isPositiveNumber($value): bool
+    {
+        return is_numeric($value) && (int) $value > 0;
+    }
+
+    public static function isWithinRange($value, int $min, int $max): bool
+    {
+        return is_numeric($value) && (int) $value >= $min && (int) $value <= $max;
+    }
+}

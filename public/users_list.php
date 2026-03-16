@@ -1,12 +1,20 @@
 <?php
-include 'db.php';
-include 'auth.php';
-require_admin();
 
-require_once 'models/usersModel.php';
-$usersModel = new Users($conn);
+require_once __DIR__ . '/../app/Core/SessionManager.php';
+require_once __DIR__ . '/../app/Core/Auth.php';
+require_once __DIR__ . '/../app/Models/User.php';
+require_once __DIR__ . '/../app/Helpers/FlashMessage.php';
 
-$result = $usersModel->getAll();
+use App\Core\SessionManager;
+use App\Core\Auth;
+use App\Models\User;
+use App\Helpers\FlashMessage;
+
+SessionManager::start();
+Auth::requireAdmin();
+
+$userModel = new User();
+$result = $userModel->getAll();
 ?>
 <!DOCTYPE html>
 <html>
@@ -29,7 +37,7 @@ $result = $usersModel->getAll();
 <a href="home.php">Back to Home</a> |
 <a href="users_new.php">Add New User</a>
 
-<?php flash_message(); ?>
+<?php FlashMessage::display(); ?>
 
 <table>
     <tr>
@@ -43,15 +51,19 @@ $result = $usersModel->getAll();
     <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
             <tr>
-                <td><?php echo htmlspecialchars($row['username']); ?></td>
-                <td><?php echo htmlspecialchars($row['account_type']); ?></td>
-                <td><?php echo htmlspecialchars($row['created_on']); ?></td>
-                <td><?php echo htmlspecialchars($row['updated_on'] ?? ""); ?></td>
-                <td><a href="users_edit.php?id=<?php echo (int)$row['id']; ?>">Edit</a></td>
+                <td><?= htmlspecialchars($row['username']) ?></td>
+                <td><?= htmlspecialchars($row['account_type']) ?></td>
+                <td><?= htmlspecialchars($row['created_on']) ?></td>
+                <td><?= htmlspecialchars($row['updated_on'] ?? '') ?></td>
+                <td>
+                    <a href="users_edit.php?id=<?= (int) $row['id'] ?>">Edit</a>
+                </td>
             </tr>
         <?php endwhile; ?>
     <?php else: ?>
-        <tr><td colspan="5" style="text-align:center;">No users found.</td></tr>
+        <tr>
+            <td colspan="5" style="text-align:center;">No users found.</td>
+        </tr>
     <?php endif; ?>
 </table>
 

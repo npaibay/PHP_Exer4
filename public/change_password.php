@@ -1,46 +1,55 @@
 <?php
-include 'db.php';
-include 'auth.php';
-require_login();
 
-$error = "";
-$success = "";
+require_once __DIR__ . '/../app/Core/SessionManager.php';
+require_once __DIR__ . '/../app/Core/Auth.php';
+require_once __DIR__ . '/../app/Models/User.php';
+require_once __DIR__ . '/../app/Helpers/Hash.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $current = $_POST['current_password'] ?? "";
-    $new = $_POST['new_password'] ?? "";
-    $confirm = $_POST['confirm_new_password'] ?? "";
+use App\Core\SessionManager;
+use App\Core\Auth;
+use App\Models\User;
+use App\Helpers\Hash;
 
-    if ($current === "" || $new === "" || $confirm === "") {
-        $error = "Please fill in all fields.";
-    } elseif (strlen($new) < 8) {
-        $error = "New password must be at least 8 characters.";
-    } elseif ($new !== $confirm) {
-        $error = "New passwords do not match.";
+SessionManager::start();
+Auth::requireLogin();
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmNewPassword = $_POST['confirm_new_password'] ?? '';
+
+    if ($currentPassword === '' || $newPassword === '' || $confirmNewPassword === '') {
+        $error = 'Please fill in all fields.';
+    } elseif (strlen($newPassword) < 8) {
+        $error = 'New password must be at least 8 characters.';
+    } elseif ($newPassword !== $confirmNewPassword) {
+        $error = 'New passwords do not match.';
     } else {
-        $uid = (int)$_SESSION['user_id'];
+        $userId = (int) SessionManager::get('user_id');
 
-        $stmt = $conn->prepare("SELECT password FROM users WHERE id=?");
-        $stmt->bind_param("i", $uid);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
+        $userModel = new User();
+        $user = $userModel->getById($userId);
 
-        if (!$row || !password_verify($current, $row['password'])) {
-            $error = "Current password is incorrect.";
+        if (!$user) {
+            $error = 'User account not found.';
         } else {
-            $hash = password_hash($new, PASSWORD_DEFAULT);
+            $userWithPassword = $userModel->getByUsername($user['username']);
 
-            $up = $conn->prepare("
-                UPDATE users
-                SET password=?, updated_on=NOW(), updated_by=?
-                WHERE id=?
-            ");
-            $up->bind_param("sii", $hash, $uid, $uid);
-            $up->execute();
+            if (!$userWithPassword || !Hash::verify($currentPassword, $userWithPassword['password'])) {
+                $error = 'Current password is incorrect.';
+            } else {
+                $newPasswordHash = Hash::make($newPassword);
 
-            $_SESSION['flash_success'] = "Password updated successfully.";
-            header("Location: home.php");
-            exit;
+                if ($userModel->updatePassword($userId, $newPasswordHash, $userId)) {
+                    SessionManager::set('flash_success', 'Password updated successfully.');
+                    header('Location: home.php');
+                    exit;
+                } else {
+                    $error = 'Failed to update password.';
+                }
+            }
         }
     }
 }
@@ -49,14 +58,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html>
 <head>
     <title>Change Password</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
             margin: 0;
             height: 100vh;
-
             display: flex;
             justify-content: center;
             align-items: center;
@@ -66,7 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             background-color: #ffffff;
             width: 360px;
             padding: 30px 25px;
-
             border: 1px solid #cccccc;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
@@ -80,7 +86,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             display: block;
             text-align: center;
             margin-bottom: 15px;
-
             text-decoration: none;
             color: #0066cc;
         }
@@ -94,17 +99,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             padding: 8px;
             margin-top: 5px;
             margin-bottom: 12px;
-
             box-sizing: border-box;
         }
 
         input[type="submit"] {
             width: 100%;
             padding: 10px;
-
             cursor: pointer;
             font-weight: bold;
-
             background-color: #0066cc;
             color: #ffffff;
             border: none;
@@ -127,8 +129,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <h1>Change Password</h1>
     <a href="home.php">Back to Home</a>
 
-    <?php if ($error !== ""): ?>
-        <div class="error"><?php echo htmlspecialchars($error); ?></div>
+    <?php if ($error !== ''): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
     <form method="post">

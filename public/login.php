@@ -1,40 +1,27 @@
 <?php
-include 'db.php';
-session_start();
 
-$error = "";
-$username_val = "";
+require_once __DIR__ . '/../app/Core/SessionManager.php';
+require_once __DIR__ . '/../app/Core/Auth.php';
 
-if($_SERVER["REQUEST_METHOD"] == "POST")
-{
-    $username_val = trim($_POST['username']);
-    $password = $_POST['password'] ?? "";
+use App\Core\SessionManager;
+use App\Core\Auth;
 
-    if($username_val == "" || $password == "")
-    {
-        $error = "Please enter username and password.";
-    }
-    else
-    {
-        $stmt = $conn->prepare("SELECT id, username, password, account_type FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username_val);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+SessionManager::start();
 
-        if(!$user || !password_verify($password, $user['password']))
-        {
-            $error = "Invalid username or password.";
-        }
-        else
-        {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['account_type'] = $user['account_type'];
+$error = '';
+$usernameValue = '';
 
-            header("Location: home.php");
-            exit;
-        }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usernameValue = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($usernameValue === '' || $password === '') {
+        $error = 'Please enter username and password.';
+    } elseif (Auth::login($usernameValue, $password)) {
+        header('Location: home.php');
+        exit;
+    } else {
+        $error = 'Invalid username or password.';
     }
 }
 ?>
@@ -111,11 +98,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 <div class="card">
     <h1>Login</h1>
 
-    <?php if($error != "") echo "<div class='error'>".htmlspecialchars($error)."</div>"; ?>
+    <?php if ($error !== ''): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
     <form method="post">
         <label>Username</label>
-        <input type="text" name="username" value="<?php echo htmlspecialchars($username_val); ?>">
+        <input type="text" name="username" value="<?= htmlspecialchars($usernameValue) ?>">
 
         <label>Password</label>
         <input type="password" name="password">

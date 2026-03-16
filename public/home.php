@@ -1,8 +1,17 @@
 <?php
-include 'db.php';
-include 'auth.php';
 
-require_login();
+require_once __DIR__ . '/../app/Core/SessionManager.php';
+require_once __DIR__ . '/../app/Core/Auth.php';
+require_once __DIR__ . '/../app/Helpers/FlashMessage.php';
+
+use App\Core\SessionManager;
+use App\Core\Auth;
+use App\Helpers\FlashMessage;
+
+SessionManager::start();
+Auth::requireLogin();
+
+$currentUser = Auth::currentUser();
 ?>
 <!DOCTYPE html>
 <html>
@@ -15,7 +24,6 @@ require_login();
             background-color: #f9f9f9;
             height: 100vh;
             margin: 0;
-
             display: flex;
             justify-content: center;
             align-items: center;
@@ -69,17 +77,17 @@ require_login();
     <h1>School Encoding Module</h1>
 
     <div class="welcome">
-        Welcome, <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>
-        (<?php echo htmlspecialchars($_SESSION['account_type']); ?>)
+        Welcome, <strong><?= htmlspecialchars($currentUser['username']) ?></strong>
+        (<?= htmlspecialchars($currentUser['account_type']) ?>)
     </div>
 
-    <?php flash_message(); ?>
+    <?php FlashMessage::display(); ?>
 
     <ul>
         <li><a href="program_list.php">Programs</a></li>
         <li><a href="subject_list.php">Subjects</a></li>
 
-        <?php if ($_SESSION['account_type'] === 'admin'): ?>
+        <?php if ($currentUser['account_type'] === 'admin'): ?>
             <li><a href="users_list.php">User Accounts</a></li>
         <?php endif; ?>
 
