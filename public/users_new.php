@@ -4,11 +4,13 @@ require_once __DIR__ . '/../app/Core/SessionManager.php';
 require_once __DIR__ . '/../app/Core/Auth.php';
 require_once __DIR__ . '/../app/Models/User.php';
 require_once __DIR__ . '/../app/Helpers/Hash.php';
+require_once __DIR__ . '/../app/Helpers/Validator.php';
 
 use App\Core\SessionManager;
 use App\Core\Auth;
 use App\Models\User;
 use App\Helpers\Hash;
+use App\Helpers\Validator;
 
 SessionManager::start();
 Auth::requireAdmin();
@@ -28,13 +30,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $password = $_POST['password'] ?? "";
     $confirm = $_POST['confirm_password'] ?? "";
 
-    if ($usernameValue === "" || $password === "" || $confirm === "") {
+    if (!Validator::required($usernameValue) || !Validator::required($password) || !Validator::required($confirm)) 
+    {
         $error = "Please fill in all fields.";
 
     } elseif (!in_array($accountTypeValue, $validRoles)) {
         $error = "Invalid account type.";
 
-    } elseif (strlen($password) < 8) {
+    } elseif (!Validator::minLength($password, 8)) {
         $error = "Password must be at least 8 characters.";
 
     } elseif ($password !== $confirm) {

@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+require_once __DIR__ . '/../Core/SessionManager.php';
+
 use App\Core\SessionManager;
 
 class FlashMessage

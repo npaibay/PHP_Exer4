@@ -1,10 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../app/Core/SessionManager.php';
+require_once __DIR__ . '/../app/Models/User.php';
 require_once __DIR__ . '/../app/Core/Auth.php';
+require_once __DIR__ . '/../app/Helpers/Validator.php';
 
 use App\Core\SessionManager;
 use App\Core\Auth;
+use App\Helpers\Validator;
 
 SessionManager::start();
 
@@ -15,12 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usernameValue = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if ($usernameValue === '' || $password === '') {
+    if (!Validator::required($usernameValue) || !Validator::required($password))
+    {
         $error = 'Please enter username and password.';
-    } elseif (Auth::login($usernameValue, $password)) {
+    } 
+    elseif (Auth::login($usernameValue, $password)) 
+    {
         header('Location: home.php');
         exit;
-    } else {
+    }
+    else 
+    {
         $error = 'Invalid username or password.';
     }
 }
@@ -112,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="submit" value="Login">
     </form>
 
-    <div class="hint">Default admin: admin / admin123</div>
+    <div class="hint">Default admin: admin / admin12345</div>
 </div>
 
 </body>

@@ -4,7 +4,7 @@ namespace App\Helpers;
 
 class Validator
 {
-    public static function isRequired(string $value): bool
+    public static function required(string $value): bool
     {
         return trim($value) !== '';
     }

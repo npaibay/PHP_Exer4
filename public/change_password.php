@@ -4,9 +4,11 @@ require_once __DIR__ . '/../app/Core/SessionManager.php';
 require_once __DIR__ . '/../app/Core/Auth.php';
 require_once __DIR__ . '/../app/Models/User.php';
 require_once __DIR__ . '/../app/Helpers/Hash.php';
+require_once __DIR__ . '/../app/Helpers/Validator.php';
 
 use App\Core\SessionManager;
 use App\Core\Auth;
+use App\Helpers\Validator;
 use App\Models\User;
 use App\Helpers\Hash;
 
@@ -20,13 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newPassword = $_POST['new_password'] ?? '';
     $confirmNewPassword = $_POST['confirm_new_password'] ?? '';
 
-    if ($currentPassword === '' || $newPassword === '' || $confirmNewPassword === '') {
+    if (!Validator::required($currentPassword) || 
+        !Validator::required($newPassword) || 
+        !Validator::required($confirmNewPassword)) 
+    {
         $error = 'Please fill in all fields.';
-    } elseif (strlen($newPassword) < 8) {
+    } 
+    elseif (!Validator::minLength($newPassword, 8)) 
+    {
         $error = 'New password must be at least 8 characters.';
-    } elseif ($newPassword !== $confirmNewPassword) {
+    } 
+    elseif ($newPassword !== $confirmNewPassword) 
+    {
         $error = 'New passwords do not match.';
-    } else {
+    } 
+    else 
+    {
         $userId = (int) SessionManager::get('user_id');
 
         $userModel = new User();

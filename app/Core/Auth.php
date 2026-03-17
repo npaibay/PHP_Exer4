@@ -2,6 +2,9 @@
 
 namespace App\Core;
 
+require_once __DIR__ . '/SessionManager.php';
+require_once __DIR__ . '/../Models/User.php';
+
 use App\Models\User;
 
 class Auth
