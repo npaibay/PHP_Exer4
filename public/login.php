@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Login Portal</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <div class="card">
-    <h1>Login</h1>
+    <h1>Login Portal</h1>
 
     <?php if ($error !== ''): ?>
         <div class="error"><?= htmlspecialchars($error) ?></div>
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <input type="submit" value="Login">
     </form>
-
+    
     <div class="hint">Default admin: admin / admin12345</div>
 </div>
 
