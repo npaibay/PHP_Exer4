@@ -2,7 +2,7 @@
 
 ## Default Admin Credentials
 - Username: admin
-- Password: admin123
+- Password: admin12345
 
 ## Project Folder Structure
 /project-folder
