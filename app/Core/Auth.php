@@ -14,7 +14,7 @@ class Auth
         SessionManager::start();
 
         if (!SessionManager::has('user_id')) {
-            header('Location: login.php');
+            header('Location: index.php?controller=auth&action=showLogin');
             exit;
         }
     }
@@ -25,7 +25,7 @@ class Auth
 
         if (SessionManager::get('account_type') !== 'admin') {
             SessionManager::set('flash_error', 'Access denied.');
-            header('Location: home.php');
+            header('Location: index.php?controller=home&action=index');
             exit;
         }
     }
@@ -38,9 +38,21 @@ class Auth
 
         if (!in_array($role, ['admin', 'staff'], true)) {
             SessionManager::set('flash_error', 'Access denied.');
-            header('Location: home.php');
+            header('Location: index.php?controller=home&action=index');
             exit;
         }
+    }
+
+    public static function check(): bool
+    {
+        SessionManager::start();
+        return SessionManager::has('user_id');
+    }
+
+    public static function id(): ?int
+    {
+        SessionManager::start();
+        return SessionManager::get('user_id');
     }
 
     public static function currentUser(): ?array
@@ -80,7 +92,7 @@ class Auth
     {
         SessionManager::start();
         SessionManager::destroy();
-        header('Location: login.php');
+        header('Location: index.php?controller=auth&action=showLogin');
         exit;
     }
 }

@@ -38,13 +38,13 @@ class Subject
         return $statement->num_rows > 0;
     }
 
-    public function create(string $code, string $title, int $unit, int $createdBy): bool
+    public function create(string $code, string $title, int $unit): bool
     {
         $statement = $this->connection->prepare(
-            "INSERT INTO subject (code, title, unit, created_on, created_by)
-             VALUES (?, ?, ?, NOW(), ?)"
+            "INSERT INTO subject (code, title, unit)
+             VALUES (?, ?, ?)"
         );
-        $statement->bind_param("ssii", $code, $title, $unit, $createdBy);
+        $statement->bind_param("ssi", $code, $title, $unit);
 
         return $statement->execute();
     }
@@ -63,19 +63,14 @@ class Subject
         return $subject ?: null;
     }
 
-    public function update(
-        int $id,
-        string $code,
-        string $title,
-        int $unit,
-        int $updatedBy
-    ): bool {
+    public function update(int $id, string $code, string $title, int $unit): bool
+    {
         $statement = $this->connection->prepare(
             "UPDATE subject
-             SET code = ?, title = ?, unit = ?, updated_on = NOW(), updated_by = ?
+             SET code = ?, title = ?, unit = ?
              WHERE subject_id = ?"
         );
-        $statement->bind_param("ssiii", $code, $title, $unit, $updatedBy, $id);
+        $statement->bind_param("ssii", $code, $title, $unit, $id);
 
         return $statement->execute();
     }
@@ -110,15 +105,5 @@ class Subject
         $statement->execute();
 
         return $statement->get_result();
-    }
-
-    public function delete(int $id): bool
-    {
-        $statement = $this->connection->prepare(
-            "DELETE FROM subject WHERE subject_id = ?"
-        );
-        $statement->bind_param("i", $id);
-
-        return $statement->execute();
     }
 }

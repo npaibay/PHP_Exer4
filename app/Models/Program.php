@@ -38,13 +38,13 @@ class Program
         return $statement->num_rows > 0;
     }
 
-    public function create(string $code, string $title, int $years, int $createdBy): bool
+    public function create(string $code, string $title, int $years): bool
     {
         $statement = $this->connection->prepare(
-            "INSERT INTO program (code, title, years, created_on, created_by)
-             VALUES (?, ?, ?, NOW(), ?)"
+            "INSERT INTO program (code, title, years)
+             VALUES (?, ?, ?)"
         );
-        $statement->bind_param("ssii", $code, $title, $years, $createdBy);
+        $statement->bind_param("ssi", $code, $title, $years);
 
         return $statement->execute();
     }
@@ -63,19 +63,14 @@ class Program
         return $program ?: null;
     }
 
-    public function update(
-        int $id,
-        string $code,
-        string $title,
-        int $years,
-        int $updatedBy
-    ): bool {
+    public function update(int $id, string $code, string $title, int $years): bool
+    {
         $statement = $this->connection->prepare(
             "UPDATE program
-             SET code = ?, title = ?, years = ?, updated_on = NOW(), updated_by = ?
+             SET code = ?, title = ?, years = ?
              WHERE program_id = ?"
         );
-        $statement->bind_param("ssiii", $code, $title, $years, $updatedBy, $id);
+        $statement->bind_param("ssii", $code, $title, $years, $id);
 
         return $statement->execute();
     }
@@ -110,15 +105,5 @@ class Program
         $statement->execute();
 
         return $statement->get_result();
-    }
-
-    public function delete(int $id): bool
-    {
-        $statement = $this->connection->prepare(
-            "DELETE FROM program WHERE program_id = ?"
-        );
-        $statement->bind_param("i", $id);
-
-        return $statement->execute();
     }
 }

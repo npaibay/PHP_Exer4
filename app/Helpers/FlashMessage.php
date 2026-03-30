@@ -8,22 +8,23 @@ use App\Core\SessionManager;
 
 class FlashMessage
 {
-    public static function display(): void
+    public static function set(string $key, string $message): void
+    {
+        SessionManager::start();
+        SessionManager::set($key, $message);
+    }
+
+    public static function get(string $key): ?string
     {
         SessionManager::start();
 
-        if (SessionManager::get('flash_success')) {
-            echo "<div style='color: green; text-align: center; margin-bottom: 10px; font-weight: bold;'>"
-                . htmlspecialchars(SessionManager::get('flash_success'))
-                . "</div>";
-            SessionManager::remove('flash_success');
+        if (!SessionManager::has($key)) {
+            return null;
         }
 
-        if (SessionManager::get('flash_error')) {
-            echo "<div style='color: red; text-align: center; margin-bottom: 10px; font-weight: bold;'>"
-                . htmlspecialchars(SessionManager::get('flash_error'))
-                . "</div>";
-            SessionManager::remove('flash_error');
-        }
+        $message = SessionManager::get($key);
+        SessionManager::remove($key);
+
+        return $message;
     }
 }
