@@ -38,13 +38,13 @@ class Program
         return $statement->num_rows > 0;
     }
 
-    public function create(string $code, string $title, int $years): bool
+    public function create(string $code, string $title, int $years, int $createdBy): bool
     {
         $statement = $this->connection->prepare(
-            "INSERT INTO program (code, title, years)
-             VALUES (?, ?, ?)"
+            "INSERT INTO program (code, title, years, created_on, created_by)
+             VALUES (?, ?, ?, NOW(), ?)"
         );
-        $statement->bind_param("ssi", $code, $title, $years);
+        $statement->bind_param("ssii", $code, $title, $years, $createdBy);
 
         return $statement->execute();
     }
@@ -63,14 +63,14 @@ class Program
         return $program ?: null;
     }
 
-    public function update(int $id, string $code, string $title, int $years): bool
+    public function update(int $id, string $code, string $title, int $years, int $updatedBy): bool
     {
         $statement = $this->connection->prepare(
             "UPDATE program
-             SET code = ?, title = ?, years = ?
+             SET code = ?, title = ?, years = ?, updated_on = NOW(), updated_by = ?
              WHERE program_id = ?"
         );
-        $statement->bind_param("ssii", $code, $title, $years, $id);
+        $statement->bind_param("ssiii", $code, $title, $years, $updatedBy, $id);
 
         return $statement->execute();
     }

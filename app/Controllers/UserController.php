@@ -29,7 +29,9 @@ class UserController extends Controller
     public function create(): void
     {
         Auth::requireAdmin();
-        $this->view('users/new');
+
+        $validRoles = ['admin', 'staff', 'teacher', 'student'];
+        $this->view('users/new', compact('validRoles'));
     }
 
     public function store(): void
@@ -37,15 +39,12 @@ class UserController extends Controller
         Auth::requireAdmin();
 
         $error = '';
-        $username = '';
-        $accountType = 'student';
-
-        $validRoles = ['admin', 'staff', 'teacher', 'student'];
-
         $username = trim($_POST['username'] ?? '');
-        $accountType = $_POST['account_type'] ?? '';
+        $accountType = $_POST['account_type'] ?? 'student';
         $password = $_POST['password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        $validRoles = ['admin', 'staff', 'teacher', 'student'];
 
         if (!Validator::required($username) || !Validator::required($password) || !Validator::required($confirmPassword)) {
             $error = 'Please fill in all fields.';
@@ -76,7 +75,7 @@ class UserController extends Controller
     {
         Auth::requireAdmin();
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = (int) ($_GET['id'] ?? 0);
         $user = $this->userModel->getById($id);
 
         if (!$user) {
@@ -85,7 +84,6 @@ class UserController extends Controller
         }
 
         $validRoles = ['admin', 'staff', 'teacher', 'student'];
-
         $this->view('users/edit', compact('user', 'validRoles'));
     }
 
@@ -93,14 +91,14 @@ class UserController extends Controller
     {
         Auth::requireAdmin();
 
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = (int) ($_GET['id'] ?? 0);
         $error = '';
         $validRoles = ['admin', 'staff', 'teacher', 'student'];
 
         $username = trim($_POST['username'] ?? '');
         $accountType = $_POST['account_type'] ?? '';
 
-        if ($username === '') {
+        if (!Validator::required($username)) {
             $error = 'Username is required.';
         } elseif (!in_array($accountType, $validRoles, true)) {
             $error = 'Invalid account type.';
@@ -120,7 +118,7 @@ class UserController extends Controller
         $user = [
             'id' => $id,
             'username' => $username,
-            'account_type' => $accountType
+            'account_type' => $accountType,
         ];
 
         $this->view('users/edit', compact('error', 'user', 'validRoles'));

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Auth;
+use App\Core\SessionManager;
 use App\Models\Subject;
 
 class SubjectController extends Controller
@@ -27,11 +28,7 @@ class SubjectController extends Controller
 
         $result = $this->subjectModel->search($searchText);
 
-        $this->view('subjects/list', compact(
-            'result',
-            'searchText',
-            'canManage'
-        ));
+        $this->view('subjects/list', compact('result', 'searchText', 'canManage'));
     }
 
     public function create(): void
@@ -56,8 +53,10 @@ class SubjectController extends Controller
         } elseif ($this->subjectModel->codeExists($code)) {
             $error = "Subject code '{$code}' already exists!";
         } else {
-            if ($this->subjectModel->create($code, $title, $unitInt)) {
-                \App\Core\SessionManager::set('flash_success', 'Subject added successfully.');
+            $createdBy = (int) SessionManager::get('user_id');
+
+            if ($this->subjectModel->create($code, $title, $unitInt, $createdBy)) {
+                SessionManager::set('flash_success', 'Subject added successfully.');
                 $this->redirect('index.php?controller=subject&action=list');
             } else {
                 $error = 'Failed to add subject.';
@@ -71,11 +70,11 @@ class SubjectController extends Controller
     {
         Auth::requireAdminOrStaff();
 
-        $id = isset($_GET['subject_id']) ? (int) $_GET['subject_id'] : 0;
+        $id = (int) ($_GET['subject_id'] ?? 0);
         $subject = $this->subjectModel->getById($id);
 
         if (!$subject) {
-            \App\Core\SessionManager::set('flash_error', 'Subject not found.');
+            SessionManager::set('flash_error', 'Subject not found.');
             $this->redirect('index.php?controller=subject&action=list');
         }
 
@@ -86,7 +85,7 @@ class SubjectController extends Controller
     {
         Auth::requireAdminOrStaff();
 
-        $id = isset($_GET['subject_id']) ? (int) $_GET['subject_id'] : 0;
+        $id = (int) ($_GET['subject_id'] ?? 0);
 
         $code = trim($_POST['code'] ?? '');
         $title = trim($_POST['title'] ?? '');
@@ -100,8 +99,10 @@ class SubjectController extends Controller
         } elseif ($this->subjectModel->codeExists($code, $id)) {
             $error = "Subject code '{$code}' already exists!";
         } else {
-            if ($this->subjectModel->update($id, $code, $title, $unitInt)) {
-                \App\Core\SessionManager::set('flash_success', 'Subject updated successfully.');
+            $updatedBy = (int) SessionManager::get('user_id');
+
+            if ($this->subjectModel->update($id, $code, $title, $unitInt, $updatedBy)) {
+                SessionManager::set('flash_success', 'Subject updated successfully.');
                 $this->redirect('index.php?controller=subject&action=list');
             } else {
                 $error = 'Failed to update subject.';
@@ -112,7 +113,7 @@ class SubjectController extends Controller
             'subject_id' => $id,
             'code' => $code,
             'title' => $title,
-            'unit' => $unit
+            'unit' => $unit,
         ];
 
         $this->view('subjects/edit', compact('error', 'subject'));

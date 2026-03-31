@@ -38,13 +38,13 @@ class Subject
         return $statement->num_rows > 0;
     }
 
-    public function create(string $code, string $title, int $unit): bool
+    public function create(string $code, string $title, int $unit, int $createdBy): bool
     {
         $statement = $this->connection->prepare(
-            "INSERT INTO subject (code, title, unit)
-             VALUES (?, ?, ?)"
+            "INSERT INTO subject (code, title, unit, created_on, created_by)
+             VALUES (?, ?, ?, NOW(), ?)"
         );
-        $statement->bind_param("ssi", $code, $title, $unit);
+        $statement->bind_param("ssii", $code, $title, $unit, $createdBy);
 
         return $statement->execute();
     }
@@ -63,14 +63,14 @@ class Subject
         return $subject ?: null;
     }
 
-    public function update(int $id, string $code, string $title, int $unit): bool
+    public function update(int $id, string $code, string $title, int $unit, int $updatedBy): bool
     {
         $statement = $this->connection->prepare(
             "UPDATE subject
-             SET code = ?, title = ?, unit = ?
+             SET code = ?, title = ?, unit = ?, updated_on = NOW(), updated_by = ?
              WHERE subject_id = ?"
         );
-        $statement->bind_param("ssii", $code, $title, $unit, $id);
+        $statement->bind_param("ssiii", $code, $title, $unit, $updatedBy, $id);
 
         return $statement->execute();
     }
